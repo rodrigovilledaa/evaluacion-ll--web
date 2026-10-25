@@ -1,153 +1,308 @@
 
-import { useState } from "react";
-import "./App.css";
+import { useState, useEffect } from 'react'
+import {
+  Button,
+  Input,
+  Form,
+  FormGroup,
+  Label,
+  Alert,
+  Badge,
+  Card,
+  CardBody
+} from 'reactstrap'
 
-const API_URL = "http://localhost:3000";
+import 'bootstrap/dist/css/bootstrap.min.css'
+import './App.css'
+
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000'
 
 function App() {
-  const [temperatura, setTemperatura] = useState("");
-  const [historial, setHistorial] = useState([]);
-  const [mensaje, setMensaje] = useState("Esperando ajuste...");
-  const [estabilizado, setEstabilizado] = useState(false);
-  const [cargando, setCargando] = useState(false);
 
-  async function registrarIntento(evento) {
-    evento.preventDefault();
+  const [temperatura, setTemperatura] = useState('')
+  const [mensaje, setMensaje] = useState('')
+  const [historial, setHistorial] = useState([])
+  const [estabilizado, setEstabilizado] = useState(false)
+  const [cargando, setCargando] = useState(false)
+  const [error, setError] = useState('')
 
-    const valor = Number(temperatura);
+  useEffect(() => {
+    document.title = estabilizado
+      ? 'Reactor estabilizado'
+      : 'Estabiliza el Reactor'
+  }, [estabilizado])
 
-    if (!Number.isInteger(valor) || valor < 1 || valor > 100) {
-      setMensaje("Ingresa un número entero entre 1 y 100.");
-      return;
+  async function handleSubmit(event) {
+    event.preventDefault()
+
+    if (cargando || estabilizado) return
+
+    const numero = Number(temperatura)
+
+    if (
+      temperatura === '' ||
+      !Number.isInteger(numero) ||
+      numero < 1 ||
+      numero > 100
+    ) {
+      setError('Ingresa un número entero entre 1 y 100.')
+      return
     }
 
-    if (estabilizado || cargando) {
-      return;
-    }
-
-    setHistorial((anterior) => [...anterior, valor]);
-    setCargando(true);
-    setMensaje("Comprobando temperatura...");
+    setCargando(true)
+    setError('')
+    setMensaje('')
 
     try {
       const respuesta = await fetch(`${API_URL}/adjust`, {
-        method: "POST",
+        method: 'POST',
         headers: {
-          "Content-Type": "application/json",
+          'Content-Type': 'application/json'
         },
-        body: JSON.stringify({ temperatura: valor }),
-      });
+        body: JSON.stringify({
+          temperatura: numero
+        })
+      })
 
-      const resultado = await respuesta.json();
+      const datos = await respuesta.json().catch(() => ({}))
 
       if (!respuesta.ok) {
-        throw new Error(resultado.mensaje || "No se pudo ajustar el reactor.");
+        throw new Error(
+          datos.mensaje || 'No se pudo ajustar el reactor.'
+        )
       }
 
-      setMensaje(resultado.mensaje);
-      setEstabilizado(resultado.estabilizado === true);
-    } catch (error) {
-      setMensaje(
-        error.message === "Failed to fetch"
-          ? "No se pudo conectar con el servidor."
-          : error.message
-      );
+      const mensajesValidos = [
+        'más alta',
+        'más baja',
+        'estabilizado'
+      ]
+
+      if (!mensajesValidos.includes(datos.mensaje)) {
+        throw new Error(
+          'El backend devolvió un mensaje no reconocido.'
+        )
+      }
+
+      setMensaje(datos.mensaje)
+
+
+      setHistorial(anterior => [
+        ...anterior,
+        {
+          temperatura: numero,
+          resultado: datos.mensaje
+        }
+      ])
+
+      if (datos.mensaje === 'estabilizado') {
+        setEstabilizado(true)
+      }
+
+      setTemperatura('')
+
+    } catch (err) {
+      setError(err.message)
     } finally {
-      setCargando(false);
+      setCargando(false)
     }
   }
 
-  async function reiniciarReactor() {
-    if (cargando) {
-      return;
-    }
+  async function handleReboot() {
+    if (cargando) return
 
-    setCargando(true);
+    setCargando(true)
+    setError('')
 
     try {
       const respuesta = await fetch(`${API_URL}/reboot`, {
-        method: "POST",
-      });
-
-      const resultado = await respuesta.json();
+        method: 'POST'
+      })
 
       if (!respuesta.ok) {
-        throw new Error(resultado.mensaje || "No se pudo reiniciar el reactor.");
+        throw new Error('No se pudo reiniciar el reactor.')
       }
 
-      setTemperatura("");
-      setHistorial([]);
-      setEstabilizado(false);
-      setMensaje(resultado.mensaje || "Reactor reiniciado. Intenta de nuevo.");
-    } catch (error) {
-      setMensaje(
-        error.message === "Failed to fetch"
-          ? "No se pudo conectar con el servidor."
-          : error.message
-      );
+      
+      setTemperatura('')
+      setMensaje('')
+      setHistorial([])
+      setEstabilizado(false)
+
+    } catch (err) {
+      setError(err.message)
     } finally {
-      setCargando(false);
+      setCargando(false)
     }
   }
 
   return (
-    <main className="contenedor">
-      <h1>Estabiliza el Reactor</h1>
+    <main className="pagina">
 
-      <p>Ingresa una temperatura entre 1 y 100.</p>
+      <div className="contenedor">
 
-      <form onSubmit={registrarIntento}>
-        <label htmlFor="temperatura">Temperatura:</label>
+        <header className="encabezado">
+          <p className="subtitulo">CENTRO DE CONTROL</p>
+          <h1>Estabiliza el Reactor</h1>
+          <p>
+            Encuentra la temperatura ideal entre 1 y 100
+          </p>
+        </header>
 
-        <input
-          id="temperatura"
-          type="number"
-          min="1"
-          max="100"
-          step="1"
-          value={temperatura}
-          onChange={(evento) => setTemperatura(evento.target.value)}
-          required
-          disabled={estabilizado || cargando}
-        />
+        <div className="paneles">
 
-        <button
-          type="submit"
-          disabled={estabilizado || cargando}
-        >
-          {cargando ? "Procesando..." : "Ajustar temperatura"}
-        </button>
+          <Card className="panel-reactor">
+            <CardBody>
 
-        <button
-          type="button"
-          onClick={reiniciarReactor}
-          disabled={cargando}
-        >
-          Reiniciar reactor
-        </button>
-      </form>
+              <div className="estado">
+                <Badge color={estabilizado ? 'success' : 'warning'}>
+                  {estabilizado ? 'ESTABILIZADO' : 'INESTABLE'}
+                </Badge>
+              </div>
 
-      <p role="status">{mensaje}</p>
+              <div
+                className={
+                  estabilizado
+                    ? 'reactor reactor-exito'
+                    : 'reactor'
+                }
+              >
+                {estabilizado ? '✓' : '⚛'}
+              </div>
 
-      <h2>Historial de intentos</h2>
+              <h2 className="titulo-panel">
+                {estabilizado
+                  ? '¡Reactor estabilizado!'
+                  : 'Control de temperatura'}
+              </h2>
 
-      {historial.length === 0 ? (
-        <p>Aún no hay intentos.</p>
-      ) : (
-        <ul>
-          {historial.map((intento, indice) => (
-            <li key={`${indice}-${intento}`}>
-              Intento {indice + 1}: {intento}
-            </li>
-          ))}
-        </ul>
-      )}
+              <Form onSubmit={handleSubmit}>
 
-      <h2>Estado del reactor</h2>
+                <FormGroup>
+                  <Label for="temperatura">
+                    Temperatura a ingresar
+                  </Label>
 
-      <p>{estabilizado ? "Estabilizado" : "Pendiente"}</p>
+                  <Input
+                    id="temperatura"
+                    type="number"
+                    min="1"
+                    max="100"
+                    step="1"
+                    placeholder="Ejemplo: 50"
+                    value={temperatura}
+                    onChange={(event) =>
+                      setTemperatura(event.target.value)
+                    }
+                    disabled={estabilizado || cargando}
+                    required
+                  />
+                </FormGroup>
+
+                <Button
+                  type="submit"
+                  color="primary"
+                  className="boton-principal"
+                  disabled={
+                    estabilizado ||
+                    cargando ||
+                    temperatura === ''
+                  }
+                >
+                  {cargando
+                    ? 'Procesando...'
+                    : 'Ajustar temperatura'}
+                </Button>
+
+              </Form>
+
+              {mensaje && (
+                <Alert
+                  className="aviso"
+                  color={
+                    estabilizado
+                      ? 'success'
+                      : mensaje === 'más alta'
+                        ? 'info'
+                        : 'warning'
+                  }
+                >
+                  <strong>Respuesta del servidor:</strong>
+                  {' '}{mensaje}
+                </Alert>
+              )}
+
+              {error && (
+                <Alert className="aviso" color="danger">
+                  {error}
+                </Alert>
+              )}
+
+              <Button
+                color="secondary"
+                outline
+                className="boton-reiniciar"
+                onClick={handleReboot}
+                disabled={cargando}
+              >
+                Reiniciar reactor
+              </Button>
+
+            </CardBody>
+          </Card>
+
+          <Card className="panel-historial">
+            <CardBody>
+
+              <h2>Historial de intentos</h2>
+
+              <p className="descripcion">
+                Temperaturas ingresadas durante la sesión
+              </p>
+
+              <Badge color="info">
+                Intentos: {historial.length}
+              </Badge>
+
+              {historial.length === 0 ? (
+                <p className="sin-intentos">
+                  Todavía no has ingresado temperaturas.
+                </p>
+              ) : (
+                <ul className="lista-historial">
+
+                  {historial.map((intento, indice) => (
+                    <li key={indice}>
+
+                      <span>
+                        #{indice + 1} — {intento.temperatura} °C
+                      </span>
+
+                      <Badge
+                        color={
+                          intento.resultado === 'estabilizado'
+                            ? 'success'
+                            : 'secondary'
+                        }
+                      >
+                        {intento.resultado}
+                      </Badge>
+
+                    </li>
+                  ))}
+
+                </ul>
+              )}
+
+            </CardBody>
+          </Card>
+
+        </div>
+
+      </div>
+
     </main>
-  );
+  )
 }
 
-export default App;
+export default App
