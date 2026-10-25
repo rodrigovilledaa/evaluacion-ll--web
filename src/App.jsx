@@ -1,122 +1,153 @@
-import { useState } from 'react'
-import heroImg from './assets/hero.png'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
-import './App.css'
+
+import { useState } from "react";
+import "./App.css";
+
+const API_URL = "http://localhost:3000";
 
 function App() {
-  const [count, setCount] = useState(0)
+  const [temperatura, setTemperatura] = useState("");
+  const [historial, setHistorial] = useState([]);
+  const [mensaje, setMensaje] = useState("Esperando ajuste...");
+  const [estabilizado, setEstabilizado] = useState(false);
+  const [cargando, setCargando] = useState(false);
+
+  async function registrarIntento(evento) {
+    evento.preventDefault();
+
+    const valor = Number(temperatura);
+
+    if (!Number.isInteger(valor) || valor < 1 || valor > 100) {
+      setMensaje("Ingresa un número entero entre 1 y 100.");
+      return;
+    }
+
+    if (estabilizado || cargando) {
+      return;
+    }
+
+    setHistorial((anterior) => [...anterior, valor]);
+    setCargando(true);
+    setMensaje("Comprobando temperatura...");
+
+    try {
+      const respuesta = await fetch(`${API_URL}/adjust`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ temperatura: valor }),
+      });
+
+      const resultado = await respuesta.json();
+
+      if (!respuesta.ok) {
+        throw new Error(resultado.mensaje || "No se pudo ajustar el reactor.");
+      }
+
+      setMensaje(resultado.mensaje);
+      setEstabilizado(resultado.estabilizado === true);
+    } catch (error) {
+      setMensaje(
+        error.message === "Failed to fetch"
+          ? "No se pudo conectar con el servidor."
+          : error.message
+      );
+    } finally {
+      setCargando(false);
+    }
+  }
+
+  async function reiniciarReactor() {
+    if (cargando) {
+      return;
+    }
+
+    setCargando(true);
+
+    try {
+      const respuesta = await fetch(`${API_URL}/reboot`, {
+        method: "POST",
+      });
+
+      const resultado = await respuesta.json();
+
+      if (!respuesta.ok) {
+        throw new Error(resultado.mensaje || "No se pudo reiniciar el reactor.");
+      }
+
+      setTemperatura("");
+      setHistorial([]);
+      setEstabilizado(false);
+      setMensaje(resultado.mensaje || "Reactor reiniciado. Intenta de nuevo.");
+    } catch (error) {
+      setMensaje(
+        error.message === "Failed to fetch"
+          ? "No se pudo conectar con el servidor."
+          : error.message
+      );
+    } finally {
+      setCargando(false);
+    }
+  }
 
   return (
-    <>
-      <section id="center">
-        <div className="hero">
-          <img src={heroImg} className="base" width="170" height="179" alt="" />
-          <img src={reactLogo} className="framework" alt="React logo" />
-          <img src={viteLogo} className="vite" alt="Vite logo" />
-        </div>
-        <div>
-          <h1>Get started</h1>
-          <p>
-            Edit <code>src/App.jsx</code> and save to test <code>HMR</code>
-          </p>
-        </div>
+    <main className="contenedor">
+      <h1>Estabiliza el Reactor</h1>
+
+      <p>Ingresa una temperatura entre 1 y 100.</p>
+
+      <form onSubmit={registrarIntento}>
+        <label htmlFor="temperatura">Temperatura:</label>
+
+        <input
+          id="temperatura"
+          type="number"
+          min="1"
+          max="100"
+          step="1"
+          value={temperatura}
+          onChange={(evento) => setTemperatura(evento.target.value)}
+          required
+          disabled={estabilizado || cargando}
+        />
+
+        <button
+          type="submit"
+          disabled={estabilizado || cargando}
+        >
+          {cargando ? "Procesando..." : "Ajustar temperatura"}
+        </button>
+
         <button
           type="button"
-          className="counter"
-          onClick={() => setCount((count) => count + 1)}
+          onClick={reiniciarReactor}
+          disabled={cargando}
         >
-          Count is {count}
+          Reiniciar reactor
         </button>
-      </section>
+      </form>
 
-      <div className="ticks"></div>
+      <p role="status">{mensaje}</p>
 
-      <section id="next-steps">
-        <div id="docs">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#documentation-icon"></use>
-          </svg>
-          <h2>Documentation</h2>
-          <p>Your questions, answered</p>
-          <ul>
-            <li>
-              <a href="https://vite.dev/" target="_blank">
-                <img className="logo" src={viteLogo} alt="" />
-                Explore Vite
-              </a>
-            </li>
-            <li>
-              <a href="https://react.dev/" target="_blank">
-                <img className="button-icon" src={reactLogo} alt="" />
-                Learn more
-              </a>
-            </li>
-          </ul>
-        </div>
-        <div id="social">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#social-icon"></use>
-          </svg>
-          <h2>Connect with us</h2>
-          <p>Join the Vite community</p>
-          <ul>
-            <li>
-              <a href="https://github.com/vitejs/vite" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#github-icon"></use>
-                </svg>
-                GitHub
-              </a>
-            </li>
-            <li>
-              <a href="https://chat.vite.dev/" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#discord-icon"></use>
-                </svg>
-                Discord
-              </a>
-            </li>
-            <li>
-              <a href="https://x.com/vite_js" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#x-icon"></use>
-                </svg>
-                X.com
-              </a>
-            </li>
-            <li>
-              <a href="https://bsky.app/profile/vite.dev" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#bluesky-icon"></use>
-                </svg>
-                Bluesky
-              </a>
-            </li>
-          </ul>
-        </div>
-      </section>
+      <h2>Historial de intentos</h2>
 
-      <div className="ticks"></div>
-      <section id="spacer"></section>
-    </>
-  )
+      {historial.length === 0 ? (
+        <p>Aún no hay intentos.</p>
+      ) : (
+        <ul>
+          {historial.map((intento, indice) => (
+            <li key={`${indice}-${intento}`}>
+              Intento {indice + 1}: {intento}
+            </li>
+          ))}
+        </ul>
+      )}
+
+      <h2>Estado del reactor</h2>
+
+      <p>{estabilizado ? "Estabilizado" : "Pendiente"}</p>
+    </main>
+  );
 }
 
-export default App
+export default App;
