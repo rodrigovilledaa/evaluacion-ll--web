@@ -4,14 +4,19 @@ const cors = require('cors')
 const app = express()
 const port = 3000
 
-// Se genera una vez cuando inicia el servidor.
-const temperaturaObjetivo = Math.floor(Math.random() * 100) + 1
+function generarTemperatura() {
+  return Math.floor(Math.random() * 100) + 1
+}
+
+
+let temperaturaObjetivo = generarTemperatura()
 
 app.use(cors())
 app.use(express.json())
 
 app.post('/adjust', (req, res) => {
-  const temperatura = Number(req.body?.temperatura)
+
+  const temperatura = req.body?.temperatura
 
   if (
     !Number.isInteger(temperatura) ||
@@ -34,6 +39,20 @@ app.post('/adjust', (req, res) => {
   return res.json({ mensaje: 'estabilizado' })
 })
 
-app.listen(port, () => {
-  console.log(`Servidor escuchando en http://localhost:${port}`)
+app.post('/reboot', (_req, res) => {
+  temperaturaObjetivo = generarTemperatura()
+
+
+  return res.status(200).json({
+    mensaje: 'Reactor reiniciado.',
+  })
 })
+
+
+if (require.main === module) {
+  app.listen(port, () => {
+    console.log(`Servidor escuchando en http://localhost:${port}`)
+  })
+}
+
+module.exports = app
