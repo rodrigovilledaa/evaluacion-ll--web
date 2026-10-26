@@ -22,3 +22,8 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Configuracion local; el ejemplo publico si se comparte
+.env
+.env.*
+!.env.example
