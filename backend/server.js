@@ -13,6 +13,7 @@ let temperaturaObjetivo = generarTemperatura()
 
 app.use(cors())
 app.use(express.json())
+app.use('/api', require('./routes/astro'))
 
 app.post('/adjust', (req, res) => {
 
