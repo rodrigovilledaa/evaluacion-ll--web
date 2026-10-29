@@ -4,6 +4,7 @@ import {
   Alert,
   Badge,
   Button,
+  ButtonGroup,
   Card,
   CardBody,
   CardText,
@@ -30,39 +31,80 @@ function Astro() {
   const [procesando, setProcesando] = useState(false)
   const [error, setError] = useState('')
   const [mensaje, setMensaje] = useState('')
+  const [mision, setMision] = useState(null)
+  const [ahora, setAhora] = useState(0)
 
-  async function cargarDatos() {
-    setError('')
-
+  // Consultar inventario, carga y estado de misión.
+  async function cargarDatos({ silencioso = false } = {}) {
     try {
-      const [respuestaInventario, respuestaCarga] = await Promise.all([
+      const respuestas = await Promise.all([
         fetch(`${API_URL}/api/inventario`),
         fetch(`${API_URL}/api/carga`),
+        fetch(`${API_URL}/api/mision`),
       ])
 
-      if (!respuestaInventario.ok || !respuestaCarga.ok) {
-        throw new Error('No se pudieron obtener los datos de la bodega.')
+      if (respuestas.some((respuesta) => !respuesta.ok)) {
+        throw new Error('No se pudieron obtener los datos de la misión.')
       }
 
-      const datosInventario = await respuestaInventario.json()
-      const datosCarga = await respuestaCarga.json()
+      const [datosInventario, datosCarga, datosMision] =
+        await Promise.all(
+          respuestas.map((respuesta) => respuesta.json())
+        )
+
+      // Limpiar el error después de recibir los datos correctamente.
+      if (!silencioso) setError('')
 
       setInventario(datosInventario)
       setCarga(datosCarga)
-    } catch (err) {
-      setError(
-        'No se pudo conectar con el servidor. Comprueba que el backend siga encendido.'
-      )
+      setMision(datosMision)
+      setAhora(Date.now())
+
+      return true
+    } catch {
+      if (!silencioso) {
+        setError(
+          'No se pudo conectar con el servidor. Comprueba que el backend siga encendido.'
+        )
+      }
+
+      return false
     } finally {
       setCargando(false)
     }
   }
 
-  useEffect(() => {
-    cargarDatos()
-  }, [])
+useEffect(() => {
+
+  const cargaInicial = setTimeout(() => {
+    void cargarDatos()
+  }, 0)
+
+  const reloj = setInterval(() => {
+    setAhora(Date.now())
+  }, 1000)
+
+  const sincronizador = setInterval(() => {
+    void cargarDatos({ silencioso: true })
+  }, 3000)
+
+  return () => {
+    clearTimeout(cargaInicial)
+    clearInterval(reloj)
+    clearInterval(sincronizador)
+  }
+}, [])
 
   async function ejecutarOperacion(url, metodo, datos) {
+    if (procesando) return
+
+    if (url.startsWith('/api/carga/') && !misionActiva) {
+      setError(
+        'La misión no está activa. Inicia una nueva misión para modificar la carga.'
+      )
+      return
+    }
+
     setError('')
     setMensaje('')
     setProcesando(true)
@@ -70,7 +112,9 @@ function Astro() {
     try {
       const opciones = {
         method: metodo,
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+        },
       }
 
       if (datos !== undefined) {
@@ -81,11 +125,28 @@ function Astro() {
       const resultado = await respuesta.json()
 
       if (!respuesta.ok) {
-        throw new Error(resultado.mensaje || 'No se pudo completar la operación.')
+        throw new Error(
+          resultado.mensaje || 'No se pudo completar la operación.'
+        )
       }
 
-      await cargarDatos()
-      setMensaje('Operación realizada correctamente.')
+      const actualizado = await cargarDatos({
+        silencioso: true,
+      })
+
+      if (!actualizado) {
+        throw new Error(
+          'La operación se completó, pero no se pudo actualizar la pantalla.'
+        )
+      }
+
+      if (url === '/api/mision/reiniciar') {
+        setCantidades({})
+      }
+
+      setMensaje(
+        resultado.mensaje || 'Operación realizada correctamente.'
+      )
     } catch (err) {
       setError(err.message || 'Ocurrió un error inesperado.')
     } finally {
@@ -119,6 +180,23 @@ function Astro() {
 
   const creditosDisponibles = carga.creditos - carga.total
 
+  const segundosRestantes =
+    mision?.estado === 'activa'
+      ? Math.max(0, Math.ceil((mision.venceEn - ahora) / 1000))
+      : 0
+
+  const misionActiva =
+    mision?.estado === 'activa' && segundosRestantes > 0
+
+  const estadoVisible =
+    mision?.estado === 'activa' && !misionActiva
+      ? 'expirada'
+      : (mision?.estado || 'sin conexión')
+
+  const relojVisible =
+    `${String(Math.floor(segundosRestantes / 60)).padStart(2, '0')}:` +
+    `${String(segundosRestantes % 60).padStart(2, '0')}`
+
   if (cargando) {
     return (
       <Container className="astro-container text-center py-5">
@@ -138,6 +216,60 @@ function Astro() {
 
       {error && <Alert color="danger">{error}</Alert>}
       {mensaje && <Alert color="success">{mensaje}</Alert>}
+
+      <Alert
+        color={
+          estadoVisible === 'confirmada'
+            ? 'success'
+            : estadoVisible === 'expirada'
+              ? 'warning'
+              : 'info'
+        }
+      >
+        <div className="d-flex flex-wrap align-items-center justify-content-between gap-3">
+          <div>
+            <strong>
+              Estado de misión: {estadoVisible.toUpperCase()}
+            </strong>
+
+            <p className="mb-0">
+              {estadoVisible === 'activa'
+                ? `Tiempo restante para el lanzamiento: ${relojVisible}`
+                : estadoVisible === 'confirmada'
+                  ? 'Manifiesto confirmado. El stock quedó asignado a la nave.'
+                  : estadoVisible === 'expirada'
+                    ? 'Se agotó el tiempo. Inicia una misión nueva.'
+                    : 'No se pudo consultar el estado de la misión.'}
+            </p>
+          </div>
+
+          <div className="d-flex flex-wrap gap-2">
+            <Button
+              color="success"
+              disabled={
+                procesando ||
+                !misionActiva ||
+                carga.itemsCargados.length === 0
+              }
+              onClick={() =>
+                ejecutarOperacion('/api/mision/confirmar', 'POST')
+              }
+            >
+              Confirmar carga
+            </Button>
+
+            <Button
+              color="secondary"
+              disabled={procesando || !mision}
+              onClick={() =>
+                ejecutarOperacion('/api/mision/reiniciar', 'POST')
+              }
+            >
+              Nueva misión
+            </Button>
+          </div>
+        </div>
+      </Alert>
 
       <Row className="g-3 mb-4">
         <Col xs="12" md="4">
@@ -174,7 +306,9 @@ function Astro() {
             <p className="astro-eyebrow">SUMINISTROS DISPONIBLES</p>
             <h2>Catálogo de bodega</h2>
           </div>
-          <Badge color="info" pill>{inventario.length} productos</Badge>
+          <Badge color="info" pill>
+            {inventario.length} productos
+          </Badge>
         </div>
 
         <Row className="g-3">
@@ -210,7 +344,11 @@ function Astro() {
                       min="1"
                       max={equipo.stock}
                       value={cantidades[equipo.id] ?? 1}
-                      disabled={procesando || equipo.stock < 1}
+                      disabled={
+                        procesando ||
+                        !misionActiva ||
+                        equipo.stock < 1
+                      }
                       onChange={(e) =>
                         setCantidades({
                           ...cantidades,
@@ -223,7 +361,11 @@ function Astro() {
                     <Button
                       color="primary"
                       block
-                      disabled={procesando || equipo.stock < 1}
+                      disabled={
+                        procesando ||
+                        !misionActiva ||
+                        equipo.stock < 1
+                      }
                       onClick={() => agregarEquipo(equipo)}
                     >
                       {equipo.stock < 1 ? 'Agotado' : 'Agregar a la carga'}
@@ -270,42 +412,54 @@ function Astro() {
                       </Col>
 
                       <Col xs="7" md="3">
-                        <label
-                          className="form-label"
-                          htmlFor={`unidades-${item.id}`}
-                        >
+                        <span className="form-label d-block">
                           Unidades
-                        </label>
-                        <Input
-                          id={`unidades-${item.id}`}
-                          type="number"
-                          min="1"
-                          value={item.cantidad}
-                          disabled={procesando}
-                          onChange={(e) => {
-                            const valor = e.target.value
-                            if (valor === '') return
+                        </span>
 
-                            const nuevaCantidad = Number(valor)
-                            if (
-                              Number.isInteger(nuevaCantidad) &&
-                              nuevaCantidad >= 1
-                            ) {
-                              actualizarCantidad(item.id, nuevaCantidad)
+                        <ButtonGroup
+                          size="sm"
+                          aria-label={`Unidades de ${equipo.nombre}`}
+                        >
+                          <Button
+                            color="secondary"
+                            disabled={procesando || !misionActiva}
+                            onClick={() =>
+                              actualizarCantidad(item.id, item.cantidad - 1)
                             }
-                          }}
-                        />
+                          >
+                            −
+                          </Button>
+
+                          <Button color="secondary" disabled>
+                            {item.cantidad}
+                          </Button>
+
+                          <Button
+                            color="secondary"
+                            disabled={
+                              procesando ||
+                              !misionActiva ||
+                              equipo.stock === 0
+                            }
+                            onClick={() =>
+                              actualizarCantidad(item.id, item.cantidad + 1)
+                            }
+                          >
+                            +
+                          </Button>
+                        </ButtonGroup>
                       </Col>
 
                       <Col xs="5" md="4" className="text-md-end">
                         <p className="astro-price mb-2">
                           ${(equipo.precio * item.cantidad).toFixed(2)}
                         </p>
+
                         <Button
                           color="danger"
                           outline
                           size="sm"
-                          disabled={procesando}
+                          disabled={procesando || !misionActiva}
                           onClick={() => eliminarEquipo(item.id)}
                         >
                           Eliminar
