@@ -4,63 +4,22 @@
 **Universidad Centroamericana José Simeón Cañas (UCA)**  
 **Ciclo 02-2026 | Sección 02**
 
-Proyecto colaborativo de desarrollo de aplicaciones web con integración Frontend-Backend.
+Proyecto colaborativo Frontend–Backend con **React, Vite, Reactstrap, Node.js y Express**. Incluye dos ejercicios: **Estabiliza el Reactor** y **AstroLogistics Ltd.**
 
-Se desarrollaron los dos ejercicios de la evaluación:
+## 1. Tecnologías
 
-1. **Estabiliza el Reactor:** juego de búsqueda de una temperatura objetivo.
-2. **AstroLogistics Ltd.:** sistema de inventario y preparación de suministros para una misión espacial.
+- **Frontend:** JavaScript, React, Vite, JSX, Reactstrap, Bootstrap y CSS.
+- **Backend:** Node.js, Express, CORS y JSON.
+- **Comunicación:** `fetch`, promesas, `async/await` y API REST.
+- **Estado:** `useState`, `useEffect` y almacenamiento en memoria del servidor.
+- **Pruebas:** `node:test`, `oxlint` y compilación con Vite.
+- **Colaboración:** Git, Git Flow, GitHub y Pull Requests.
 
-Ambos ejercicios funcionan desde una aplicación React que consume una API REST desarrollada con Node.js y Express.
+No requiere base de datos externa.
 
----
+## 2. Requisitos e instalación
 
-## 1. Tecnologías utilizadas
-
-### Frontend
-
-- JavaScript
-- React
-- Vite
-- Reactstrap y Bootstrap
-- CSS
-- Hooks `useState` y `useEffect`
-- Fetch API
-- Promesas y operaciones asíncronas
-
-### Backend
-
-- Node.js
-- Express
-- CORS
-- API REST
-- Datos almacenados en memoria
-- Pruebas con `node:test`
-
-### Control de versiones
-
-- Git
-- GitHub
-- Git Flow
-- Ramas `main`, `develop` y `feature/*`
-- Pull Requests
-
-No se requiere instalar una base de datos externa.
-
----
-
-## 2. Requisitos previos
-
-Tener instalados:
-
-- Git
-- Node.js
-- npm
-- Visual Studio Code (recomendado)
-
-La versión de Vite utilizada requiere Node.js `^20.19.0` o `>=22.12.0`.
-
-Comprobar las herramientas:
+Se requiere Git, npm y una versión de Node compatible con el Vite del proyecto (`^20.19.0` o `>=22.12.0`).
 
 ```powershell
 node --version
@@ -68,227 +27,111 @@ npm.cmd --version
 git --version
 ```
 
-## 3. Instalación
-
-### Clonar el repositorio
-
-Copiar la dirección HTTPS del repositorio desde GitHub y ejecutar:
+Clonar la **versión de entrega** de `main`:
 
 ```powershell
-git clone URL_DEL_REPOSITORIO
+git clone https://github.com/rodrigovilledaa/evaluacion-ll--web.git
+cd evaluacion-ll--web
+git switch main
+git pull --ff-only origin main
 ```
 
-Sustituir `URL_DEL_REPOSITORIO` por la dirección real y entrar en la carpeta clonada.
-
-Para trabajar con la versión integrada en `develop`:
-
-```powershell
-git fetch origin
-git switch develop
-git pull --ff-only origin develop
-```
-
-Estos comandos corresponden a la versión integrada, una vez aceptados los Pull Requests.
-
-### Instalar dependencias
-
-Desde la raíz del proyecto:
+Instalar las dependencias por separado:
 
 ```powershell
 npm.cmd ci
-```
-
-Instalar también las dependencias del backend:
-
-```powershell
 npm.cmd --prefix backend ci
 ```
 
-### Configurar variables de entorno
-
-Copiar el archivo de ejemplo:
+Crear el archivo de configuración local:
 
 ```powershell
 Copy-Item .env.example .env
 ```
 
-El archivo `.env` debe contener:
+Contenido de `.env`:
 
 ```env
 VITE_API_URL=http://localhost:3000
 ```
 
-No se deben subir archivos con credenciales privadas a GitHub.
+`.env` es local y no debe incluirse en Git.
 
-## 4. Ejecutar la aplicación
+## 3. Ejecutar los dos ejercicios
 
-Se necesitan dos terminales.
+Abrir **dos terminales** en la raíz del repositorio.
 
-### Terminal 1 — Backend
-
-Desde la raíz:
+**Terminal 1: backend**
 
 ```powershell
 npm.cmd --prefix backend start
 ```
 
-Servidor disponible en:
+Servidor: `http://localhost:3000`.
 
-http://localhost:3000
-
-### Terminal 2 — Frontend
-
-Desde la raíz:
+**Terminal 2: frontend**
 
 ```powershell
 npm.cmd run dev
 ```
 
-Abrir la dirección mostrada por Vite, normalmente:
+Abrir la dirección que indique Vite (normalmente `http://localhost:5173/`). La aplicación ofrece una pestaña para cada ejercicio. Para detener los procesos: `Ctrl + C`.
 
-http://localhost:5173/
-
-La aplicación tiene dos pestañas para acceder a los ejercicios.
-
-Para detener cada servidor se utiliza `Ctrl + C`.
-
----
-
-## 5. Estructura del proyecto
+## 4. Estructura y ubicación del código
 
 ```text
 backend/
-  server.js
-  data.js
+  server.js              Express, /adjust y /reboot, montaje de /api
+  data.js                Inventario, carga, créditos y estado de misión
   routes/
-    astro.js
-    inventario.js
-    agregar.js
-    eliminar.js
-    mision.js
-  server.test.js
-  astro.test.js
-  mision.test.js
-
+    astro.js             Router general y protección de la misión
+    inventario.js        GET inventario y carga
+    agregar.js           POST agregar y PUT actualizar unidades
+    eliminar.js          DELETE eliminar unidades de la carga
+    mision.js            GET estado, POST confirmar y reiniciar misión
+  server.test.js         Pruebas HTTP del reactor
+  astro.test.js          Pruebas HTTP de los 5 endpoints de Astro
+  mision.test.js         Pruebas de reglas de misión
 src/
-  App.jsx
+  App.jsx                Pestañas y conservación del estado al cambiar
   ejercicio1/
-    Reactor.jsx
-    Reactor.css
+    Reactor.jsx          Interfaz, historial y peticiones del reactor
+    Reactor.css          Estilos del reactor
   ejercicio2/
-    Astro.jsx
-    Astro.css
-
-docs/
-  GUIA_DEFENSA.md
-  PRUEBAS_MANUALES.md
-
-.env.example
-package.json
-README.md
+    Astro.jsx            Catálogo, carga, reloj y peticiones HTTP
+    Astro.css            Estilos y panel lateral de Astro
+.env.example             URL de API para Vite
+README.md                Instrucciones y documentación
 ```
 
-### Responsabilidades principales
+## 5. Ejercicio 1: Estabiliza el Reactor
 
-- `App.jsx`: navegación entre los ejercicios.
-- `Reactor.jsx`: formulario, historial y estado del reactor.
-- `Astro.jsx`: interfaz, catálogo, bodega y control de misión.
-- `server.js`: configuración de Express y endpoints del reactor.
-- `data.js`: inventario, carga, créditos y sesión de misión.
-- `routes/`: endpoints de AstroLogistics.
-- `*.test.js`: pruebas del backend.
+Al iniciar Express se genera una temperatura objetivo aleatoria **del 1 al 100**, que se guarda en una variable del servidor. React presenta un formulario, registra los intentos y muestra la respuesta. Cuando el usuario acierta, aparece el estado **ESTABILIZADO** y se bloquean nuevos intentos.
 
----
+| Método | Ruta | Función |
+|---|---|---|
+| `POST` | `/adjust` | Valida la temperatura entera 1–100 y responde `más alta`, `más baja` o `estabilizado`. |
+| `POST` | `/reboot` | Genera otro objetivo y permite iniciar una partida nueva. |
 
-# Ejercicio 1 — Estabiliza el Reactor
-
-## 6. Descripción
-
-El servidor genera una temperatura de estabilización aleatoria entre 1 y 100.
-
-El usuario introduce una temperatura y recibe una indicación:
-
-- `más alta`
-- `más baja`
-- `estabilizado`
-
-React registra los intentos y muestra el estado del reactor.
-
-Cuando se encuentra la temperatura correcta, el formulario se bloquea y aparece el estado `ESTABILIZADO`.
-
-El botón de reinicio comienza otra partida.
-
-## 7. Endpoints del reactor
-
-### POST /adjust
-
-Recibe una temperatura entera entre 1 y 100.
-
-Ejemplo:
+Ejemplo de petición:
 
 ```json
-{
-  "temperatura": 50
-}
+{ "temperatura": 50 }
 ```
 
-Respuesta HTTP `200`:
+Ejemplo de respuesta:
 
 ```json
-{
-  "mensaje": "más alta"
-}
+{ "mensaje": "más alta" }
 ```
 
-También puede devolver `más baja` o `estabilizado`.
+Los valores inválidos reciben HTTP `400`. El reinicio exitoso responde `200` y React limpia el historial y el estado de victoria. El servidor no revela la temperatura correcta. Un nuevo sorteo podría coincidir con el anterior.
 
-Las temperaturas inválidas generan un error HTTP `400`.
+## 6. Ejercicio 2: AstroLogistics Ltd.
 
-### POST /reboot
+El capitán administra un inventario limitado con **500 créditos galácticos iniciales**. Cada suministro tiene `id`, `nombre`, `precio`, `stock` y `categoria`. Las unidades se reservan temporalmente mientras se prepara la carga.
 
-Genera nuevamente la temperatura objetivo.
-
-No requiere cuerpo.
-
-Respuesta HTTP `200`:
-
-```json
-{
-  "mensaje": "Reactor reiniciado."
-}
-```
-
-Después de una respuesta exitosa, React limpia el historial, la temperatura ingresada y el estado de victoria.
-
-La nueva temperatura no se revela al usuario.
-
-Un nuevo sorteo aleatorio puede producir el mismo número anterior.
-
----
-
-# Ejercicio 2 — AstroLogistics Ltd.
-
-## 8. Descripción
-
-AstroLogistics permite preparar los suministros de una misión espacial mediante un inventario limitado y un presupuesto.
-
-El capitán puede:
-
-- Consultar suministros.
-- Agregar productos a la nave.
-- Aumentar o disminuir unidades.
-- Eliminar suministros de la carga.
-- Consultar el costo total.
-- Ver los créditos disponibles.
-- Confirmar el equipamiento.
-- Consultar el tiempo restante.
-- Iniciar una nueva misión.
-
-El presupuesto inicial es de **500 Créditos Galácticos**.
-
-## 9. Inventario inicial
-
-| ID | Producto | Precio | Stock |
+| ID | Suministro | Precio | Stock inicial |
 |---|---|---:|---:|
 | 201 | Tanque de Oxígeno XL | 50 | 5 |
 | 202 | Ración de Emergencia | 10 | 20 |
@@ -297,307 +140,87 @@ El presupuesto inicial es de **500 Créditos Galácticos**.
 | 205 | Kit Médico Avanzado | 80 | 6 |
 | 206 | Traje de Actividad Extravehicular | 200 | 2 |
 
-El stock cambia al agregar, actualizar o eliminar suministros.
+### Cinco endpoints obligatorios
 
-## 10. Endpoints obligatorios
+| Método | Ruta | Función |
+|---|---|---|
+| `GET` | `/api/inventario` | Devuelve todos los suministros disponibles. |
+| `GET` | `/api/carga` | Devuelve `{creditos, itemsCargados, total}`. |
+| `POST` | `/api/carga/agregar` | Agrega `{equipoId, cantidad}`. Valida stock y créditos. |
+| `PUT` | `/api/carga/actualizar-unidades/:id` | Recibe `{cantidad}` como **nueva cantidad total** del suministro. |
+| `DELETE` | `/api/carga/eliminar/:id` | Elimina el suministro y devuelve su stock reservado. |
 
-### GET /api/inventario
-
-Devuelve la lista de suministros con:
-
-- `id`
-- `nombre`
-- `precio`
-- `stock`
-- `categoria`
-
-Respuesta exitosa: HTTP `200`.
-
-### GET /api/carga
-
-Devuelve la carga activa, los créditos iniciales y su costo total.
-
-Ejemplo:
+Ejemplo para agregar:
 
 ```json
-{
-  "creditos": 500,
-  "itemsCargados": [],
-  "total": 0
-}
+{ "equipoId": 201, "cantidad": 2 }
 ```
 
-Los créditos disponibles se calculan como:
+El total se calcula sumando `precio * cantidad` por cada artículo. Los créditos disponibles que muestra React son `creditos - total`. Se devuelve HTTP `400` si falta stock (`Stock en base insuficiente`) o se excede el presupuesto (`Créditos insuficientes para esta cantidad`). Un identificador inexistente puede producir `404`.
 
-`creditosDisponibles = creditos - total`
+En `PUT`, una cantidad de `0` elimina el artículo de la carga y devuelve sus unidades al inventario.
 
-### POST /api/carga/agregar
+### Control de misión: tres endpoints adicionales
 
-Agrega suministros temporalmente a la nave.
+| Método | Ruta | Función |
+|---|---|---|
+| `GET` | `/api/mision` | Consulta `estado`, `venceEn`, `duracionMs` y `tiempoRestanteMs`. |
+| `POST` | `/api/mision/confirmar` | Confirma una carga no vacía y compromete el stock. |
+| `POST` | `/api/mision/reiniciar` | Inicia otra misión con carga vacía, 500 créditos y nuevo plazo. |
 
-Cuerpo:
+Los estados son:
 
-```json
-{
-  "equipoId": 201,
-  "cantidad": 1
-}
-```
+- **ACTIVA:** se pueden agregar, actualizar y eliminar suministros.
+- **CONFIRMADA:** el manifiesto se cierra y el stock reservado queda comprometido.
+- **EXPIRADA:** vence el plazo sin confirmar; se liberan las reservas temporales.
 
-Validaciones:
-
-- ID válido.
-- Cantidad entera y positiva.
-- Producto existente.
-- Stock suficiente.
-- Presupuesto disponible.
-- Misión activa.
-
-Por falta de stock, responde HTTP `400`:
-
-```json
-{
-  "mensaje": "Stock en base insuficiente"
-}
-```
-
-### PUT /api/carga/actualizar-unidades/:id
-
-Actualiza la cantidad total de un suministro.
-
-Ejemplo:
-
-```json
-{
-  "cantidad": 3
-}
-```
-
-El backend valida stock, presupuesto y cantidad.
-
-Si el costo supera los créditos, responde HTTP `400`:
-
-```json
-{
-  "mensaje": "Créditos insuficientes para esta cantidad"
-}
-```
-
-Una cantidad igual a cero elimina el suministro de la carga y devuelve sus unidades al inventario.
-
-### DELETE /api/carga/eliminar/:id
-
-Elimina un suministro completo de la carga.
-
-Las unidades reservadas regresan al inventario general.
-
-Devuelve el estado actualizado de la carga.
-
----
-
-## 11. Endpoints adicionales de misión
-
-Se añadieron tres endpoints para completar el ciclo de vida de AstroLogistics.
-
-### GET /api/mision
-
-Consulta el estado de la misión.
-
-Devuelve información como:
-
-- `estado`
-- `venceEn`
-- `duracionMs`
-- `tiempoRestanteMs`
-
-### POST /api/mision/confirmar
-
-Confirma definitivamente el equipamiento.
-
-No permite confirmar una carga vacía.
-
-Al confirmar:
-
-- La misión cambia a `confirmada`.
-- El stock reservado queda comprometido.
-- La carga deja de admitir modificaciones.
-
-### POST /api/mision/reiniciar
-
-Inicia otra misión.
-
-Restablece:
-
-- Estado `activa`.
-- Presupuesto inicial.
-- Carga vacía.
-- Temporizador.
-
-Las reservas de una misión activa se liberan.
-
-El stock de misiones confirmadas permanece comprometido.
-
----
-
-## 12. Estados de misión
-
-### ACTIVA
-
-Permite agregar, actualizar y eliminar suministros mientras exista tiempo disponible.
-
-### CONFIRMADA
-
-El equipamiento fue confirmado.
-
-Las modificaciones quedan bloqueadas y el stock permanece asignado.
-
-### EXPIRADA
-
-Se terminó la ventana de lanzamiento sin confirmar.
-
-Las reservas temporales regresan al inventario y el capitán debe iniciar una nueva misión.
-
-### Temporizador
-
-Duración predeterminada: **5 minutos**.
-
-El tiempo puede configurarse mediante la variable de entorno `MISION_DURACION_MS`.
-
-Ejemplo de prueba de 30 segundos, ejecutado antes de iniciar el backend:
+La misión dura **5 minutos por defecto**. El plazo comienza cuando se crea la sesión en el backend y también puede reiniciarse desde la interfaz. Para probar con 30 segundos, iniciar el backend en PowerShell así:
 
 ```powershell
 $env:MISION_DURACION_MS="30000"
 npm.cmd --prefix backend start
 ```
 
-La interfaz muestra la cuenta regresiva.
+Después de la prueba, detener Node y eliminar la variable con `Remove-Item Env:\MISION_DURACION_MS -ErrorAction SilentlyContinue`.
 
-El backend comprueba el estado de la misión y rechaza modificaciones cuando ya no está activa.
+**Protección del backend:** `backend/routes/astro.js` ejecuta `actualizarSesion()` antes de procesar solicitudes y rechaza con **HTTP `409 Conflict`** las operaciones `POST`, `PUT` y `DELETE` de `/api/carga/*` si la misión no está activa. El mensaje es `La misión ya no está activa.`. Esto protege las reglas aunque alguien envíe peticiones HTTP sin utilizar React. Las consultas `GET` y el reinicio de misión siguen disponibles.
 
-Las operaciones incompatibles con el estado pueden generar HTTP `409 Conflict`.
+La interfaz de AstroLogistics utiliza `Card`, `Row`, `Col`, `Badge`, `ListGroup`, `ListGroupItem`, `ButtonGroup` y `UncontrolledAlert` de Reactstrap. Presenta catálogo, bodega lateral, controles `+`/`−`, créditos, total, contador y botones para confirmar o reiniciar misión.
 
----
+## 7. Pruebas y comprobación de entrega
 
-## 13. Interfaz de AstroLogistics
-
-La interfaz utiliza componentes de Reactstrap y contiene:
-
-- Panel de información de misión.
-- Contador de lanzamiento.
-- Presupuesto y créditos disponibles.
-- Catálogo de productos.
-- Stock y precios.
-- Botones para agregar suministros.
-- Panel lateral de carga.
-- Controles `+` y `−`.
-- Botón para eliminar productos.
-- Confirmación y reinicio de misión.
-- Alertas de validación y errores.
-
-El catálogo y el panel de carga están organizados en columnas adaptables.
-
-React consulta periódicamente el backend para sincronizar la información.
-
----
-
-## 14. Administración de estados
-
-### Backend
-
-El servidor conserva en memoria:
-
-- Temperatura objetivo.
-- Inventario de suministros.
-- Artículos cargados.
-- Créditos iniciales.
-- Estado y vencimiento de misión.
-
-No existe persistencia en una base de datos.
-
-Al reiniciar el proceso de Node.js, los datos vuelven a sus valores iniciales.
-
-La misión y el inventario son compartidos por los clientes conectados al servidor.
-
-### Frontend
-
-React utiliza:
-
-- `useState` para gestionar información de interfaz.
-- `useEffect` para sincronización y temporizadores.
-- Arreglos y métodos como `map` y `find`.
-- `fetch`, `async`, `await` y `Promise.all`.
-- Componentes de Reactstrap.
-
-Las pantallas de ambos ejercicios permanecen montadas al cambiar de pestaña, lo que conserva el historial local del reactor mientras la página continúa abierta.
-
----
-
-## 15. Pruebas automatizadas
-
-Desde la raíz:
+Desde la raíz, ejecutar:
 
 ```powershell
 npm.cmd --prefix backend test
-```
-
-Este comando ejecuta las pruebas del reactor, las rutas de AstroLogistics y las reglas del ciclo de vida de misión.
-
-Revisar el frontend:
-
-```powershell
 npm.cmd run lint
-```
-
-Compilar la aplicación:
-
-```powershell
 npm.cmd run build
-```
-
-Revisar el formato de los cambios de Git:
-
-```powershell
 git diff --check
 ```
 
-También se deben realizar pruebas manuales de ambos ejercicios.
+También verificar manualmente:
 
-Consultar `docs/PRUEBAS_MANUALES.md`.
+1. Reactor: respuestas, historial, estabilización y reinicio.
+2. Astro: inventario, stock, créditos, agregar, actualizar y eliminar.
+3. Confirmación de carga y bloqueo visual de los controles.
+4. **Bloqueo HTTP real:** tras confirmar, `POST /api/carga/agregar`, `PUT /api/carga/actualizar-unidades/:id` y `DELETE /api/carga/eliminar/:id` deben devolver `409` sin cambiar inventario ni carga.
+5. Expirar una misión sin confirmar; repetir el bloqueo HTTP `409` y verificar devolución de stock.
+6. Reiniciar misión, comprobar presupuesto, carga y temporizador.
+7. Cambiar de pestaña y regresar al reactor sin perder su historial local.
+8. Instalar desde un clon limpio de `main` en otra computadora.
 
----
+**Importante:** las pruebas existentes del backend cubren las rutas y parte del ciclo de misión, pero no reemplazan las comprobaciones HTTP de los nuevos bloqueos `409`.
 
-## 16. Git Flow
+## 8. Gestión de estado y limitaciones
 
-El equipo trabaja mediante ramas:
+Los datos del backend residen **en memoria**, sin persistencia. Reiniciar Node restablece inventario, carga, misión y temperatura. No hay autenticación ni sesiones independientes: varios navegadores comparten una misma misión y el mismo inventario. La expiración se verifica cuando el servidor recibe solicitudes; no existe un proceso separado que expire la misión sin ninguna petición.
 
-- `main`: versión de entrega.
-- `develop`: rama de integración.
-- `feature/*`: funcionalidades individuales.
+React utiliza `useState` para historial, formularios, datos y mensajes, y `useEffect` para sincronizar datos y temporizadores. Las dos vistas permanecen montadas al cambiar de pestaña; esto conserva el historial del reactor mientras la página esté abierta.
 
-Cada integrante registra sus cambios en commits.
+## 9. Git Flow y defensa
 
-Las ramas feature se integran mediante Pull Requests hacia `develop`.
+- `feature/*`: desarrollo individual y commits de funcionalidades.
+- `develop`: integración y pruebas del equipo.
+- `main`: versión final entregable.
 
-La integración final en `main` se coordina entre los integrantes.
 
----
-
-## 17. Limitaciones conocidas
-
-- El almacenamiento es temporal.
-- No existe autenticación.
-- No se utiliza base de datos externa.
-- Los clientes comparten el estado del backend.
-- Existe una sola misión compartida.
-- Al reiniciar Node.js se restablecen los datos.
-
-Estas características corresponden al alcance académico del proyecto.
-
----
-
-## 18. Documentación adicional
-
-- `docs/GUIA_DEFENSA.md`: conceptos y preguntas técnicas.
-- `docs/PRUEBAS_MANUALES.md`: lista de comprobaciones de funcionamiento y entrega.
-
-Todos los integrantes deben comprender el funcionamiento general del proyecto para la defensa individual y grupal.
