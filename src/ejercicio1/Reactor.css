@@ -1,0 +1,149 @@
+
+.pagina {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #080f20, #152746);
+  color: white;
+  padding: 45px 20px;
+}
+
+.contenedor {
+  max-width: 1050px;
+  margin: auto;
+}
+
+.encabezado {
+  text-align: center;
+  margin-bottom: 35px;
+}
+
+.encabezado h1 {
+  font-size: 38px;
+  font-weight: bold;
+  color: #4fd1ff;
+}
+
+.encabezado p {
+  color: #b8c6dd;
+}
+
+.subtitulo {
+  letter-spacing: 4px;
+  font-size: 12px;
+}
+
+.paneles {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 25px;
+}
+
+.panel-reactor,
+.panel-historial {
+  background: #14233c;
+  color: white;
+  border: 1px solid #2d4b71;
+  border-radius: 16px;
+  padding: 15px;
+}
+
+.estado {
+  text-align: center;
+  margin-bottom: 15px;
+}
+
+.reactor {
+  width: 150px;
+  height: 150px;
+  border-radius: 50%;
+  border: 5px solid #ffc107;
+  background: #26314e;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: 20px auto;
+  font-size: 70px;
+  color: #ffc107;
+  box-shadow: 0 0 30px #ffc10744;
+  animation: pulso 2s infinite;
+}
+
+.reactor-exito {
+  border-color: #20c997;
+  color: #20c997;
+  box-shadow: 0 0 30px #20c99766;
+  animation: none;
+}
+
+@keyframes pulso {
+  50% {
+    box-shadow: 0 0 50px #ffc10788;
+  }
+}
+
+.titulo-panel {
+  font-size: 23px;
+  text-align: center;
+  margin-bottom: 25px;
+}
+
+.form-control {
+  margin-top: 8px;
+}
+
+.boton-principal {
+  width: 100%;
+  margin-top: 10px;
+  padding: 12px;
+  font-weight: bold;
+}
+
+.boton-reiniciar {
+  width: 100%;
+  margin-top: 20px;
+}
+
+.aviso {
+  margin-top: 20px;
+}
+
+.panel-historial h2 {
+  font-size: 24px;
+}
+
+.descripcion {
+  color: #aebdd0;
+  margin-bottom: 20px;
+}
+
+.sin-intentos {
+  text-align: center;
+  color: #aebdd0;
+  margin-top: 60px;
+}
+
+.lista-historial {
+  list-style: none;
+  padding: 0;
+  margin-top: 25px;
+}
+
+.lista-historial li {
+  padding: 14px;
+  margin-bottom: 10px;
+  background: #223756;
+  border-radius: 8px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+}
+
+@media (max-width: 768px) {
+  .paneles {
+    grid-template-columns: 1fr;
+  }
+
+  .encabezado h1 {
+    font-size: 28px;
+  }
+}
