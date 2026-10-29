@@ -139,3 +139,37 @@
     flex-direction: column;
   }
 }
+
+/* Panel lateral manteniendo el diseno espacial existente. */
+.astro-sidebar {
+  padding: 1.25rem;
+  border: 1px solid #34445e;
+  border-radius: 14px;
+  background: #101a2c;
+}
+
+.astro-sidebar .astro-section-heading {
+  flex-wrap: wrap;
+}
+
+.astro-precio-badge {
+  font-size: 1rem;
+  padding: 0.5rem 0.75rem;
+}
+
+.astro-load-list {
+  gap: 0.75rem;
+  background: transparent;
+}
+
+.astro-load-list .astro-load-item,
+.astro-load-list .astro-total {
+  color: #e8edf7;
+  border: 1px solid #34445e;
+}
+
+@media (max-width: 991px) {
+  .astro-sidebar {
+    padding: 1rem;
+  }
+}

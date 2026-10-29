@@ -12,8 +12,11 @@ import {
   Col,
   Container,
   Input,
+  ListGroup,
+  ListGroupItem,
   Row,
   Spinner,
+  UncontrolledAlert,
 } from 'reactstrap'
 import './Astro.css'
 
@@ -214,8 +217,13 @@ useEffect(() => {
         <p>Prepara los suministros para tu próxima misión.</p>
       </header>
 
-      {error && <Alert color="danger">{error}</Alert>}
+      {error && <UncontrolledAlert color="warning">{error}</UncontrolledAlert>}
       {mensaje && <Alert color="success">{mensaje}</Alert>}
+
+      <Alert color="info" className="d-flex flex-wrap align-items-center justify-content-between gap-2">
+        <span>Creditos disponibles: <strong>{creditosDisponibles.toFixed(2)} Cr</strong></span>
+        <span>Costo total de carga: <Badge color="dark" pill>{Number(carga.total).toFixed(2)} Cr</Badge></span>
+      </Alert>
 
       <Alert
         color={
@@ -300,7 +308,9 @@ useEffect(() => {
         </Col>
       </Row>
 
-      <section className="mb-5">
+      <Row className="g-4 align-items-start">
+        <Col xs="12" lg="8">
+          <section className="mb-0">
         <div className="astro-section-heading">
           <div>
             <p className="astro-eyebrow">SUMINISTROS DISPONIBLES</p>
@@ -313,7 +323,7 @@ useEffect(() => {
 
         <Row className="g-3">
           {inventario.map((equipo) => (
-            <Col xs="12" sm="6" lg="4" key={equipo.id}>
+            <Col xs="12" sm="6" key={equipo.id}>
               <Card className="astro-product h-100">
                 <CardBody className="d-flex flex-column">
                   <Badge color="secondary" className="align-self-start mb-3">
@@ -322,9 +332,9 @@ useEffect(() => {
 
                   <CardTitle tag="h5">{equipo.nombre}</CardTitle>
 
-                  <CardText className="astro-price">
-                    ${Number(equipo.precio).toFixed(2)}
-                  </CardText>
+                  <Badge color="success" className="astro-precio-badge align-self-start mb-3">
+                    ${Number(equipo.precio).toFixed(2)} Cr
+                  </Badge>
 
                   <CardText>
                     Stock disponible: <strong>{equipo.stock}</strong>
@@ -359,7 +369,7 @@ useEffect(() => {
                     />
 
                     <Button
-                      color="primary"
+                      color={equipo.stock < 1 ? 'secondary' : 'primary'}
                       block
                       disabled={
                         procesando ||
@@ -368,7 +378,7 @@ useEffect(() => {
                       }
                       onClick={() => agregarEquipo(equipo)}
                     >
-                      {equipo.stock < 1 ? 'Agotado' : 'Agregar a la carga'}
+                      {equipo.stock < 1 ? 'Agotado en Base' : 'Agregar a la carga'}
                     </Button>
                   </div>
                 </CardBody>
@@ -376,9 +386,10 @@ useEffect(() => {
             </Col>
           ))}
         </Row>
-      </section>
-
-      <section>
+          </section>
+        </Col>
+        <Col xs="12" lg="4">
+          <section className="astro-sidebar">
         <div className="astro-section-heading mb-3">
           <div>
             <p className="astro-eyebrow">PREPARACIÓN DE LA MISIÓN</p>
@@ -394,24 +405,23 @@ useEffect(() => {
             Tu carga está vacía. Agrega suministros del catálogo para comenzar.
           </Alert>
         ) : (
-          <div className="astro-load-list">
+          <ListGroup className="astro-load-list">
             {carga.itemsCargados.map((item) => {
               const equipo = inventario.find((e) => e.id === item.id)
 
               if (!equipo) return null
 
               return (
-                <Card className="astro-load-item mb-3" key={item.id}>
-                  <CardBody>
+                <ListGroupItem className="astro-load-item mb-3" key={item.id}>
                     <Row className="align-items-center g-3">
-                      <Col xs="12" md="5">
+                      <Col xs="12">
                         <h5>{equipo.nombre}</h5>
                         <p className="mb-0">
                           ${Number(equipo.precio).toFixed(2)} por unidad
                         </p>
                       </Col>
 
-                      <Col xs="7" md="3">
+                      <Col xs="7">
                         <span className="form-label d-block">
                           Unidades
                         </span>
@@ -450,7 +460,7 @@ useEffect(() => {
                         </ButtonGroup>
                       </Col>
 
-                      <Col xs="5" md="4" className="text-md-end">
+                      <Col xs="5" className="text-end">
                         <p className="astro-price mb-2">
                           ${(equipo.precio * item.cantidad).toFixed(2)}
                         </p>
@@ -466,18 +476,19 @@ useEffect(() => {
                         </Button>
                       </Col>
                     </Row>
-                  </CardBody>
-                </Card>
+                </ListGroupItem>
               )
             })}
 
-            <div className="astro-total">
+            <ListGroupItem className="astro-total">
               <span>Total de suministros</span>
               <strong>${Number(carga.total).toFixed(2)}</strong>
-            </div>
-          </div>
+            </ListGroupItem>
+          </ListGroup>
         )}
-      </section>
+          </section>
+        </Col>
+      </Row>
     </Container>
   )
 }

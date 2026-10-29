@@ -40,7 +40,13 @@ function App() {
         </Nav>
       </Container>
 
-      {pestana === 'ejercicio1' ? <Reactor /> : <Astro />}
+      {/* Ambos componentes conservan su estado al cambiar de pestana. */}
+      <div style={{ display: pestana === 'ejercicio1' ? 'block' : 'none' }}>
+        <Reactor />
+      </div>
+      <div style={{ display: pestana === 'ejercicio2' ? 'block' : 'none' }}>
+        <Astro />
+      </div>
     </>
   )
 }
